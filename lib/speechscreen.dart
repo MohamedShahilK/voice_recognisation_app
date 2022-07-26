@@ -1,7 +1,9 @@
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/material.dart';
 import 'package:highlight_text/highlight_text.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:voice_recognisation_app/command.dart';
 
 class SpeechScreen extends StatefulWidget {
   const SpeechScreen({Key? key}) : super(key: key);
@@ -17,8 +19,36 @@ class _SpeechScreenState extends State<SpeechScreen> {
   //getting 'confidence' value while talking is in range of 0 to 1.
   //set initial value to 1.0
   double confidence = 1.0;
+  bool _copyButtonClicked = false;
 
   final Map<String, HighlightedWord> _highlights = {
+    "go to": HighlightedWord(
+      onTap: () {
+        // print("Flutter");
+      },
+      textStyle: const TextStyle(
+        color: Colors.red,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    "open": HighlightedWord(
+      onTap: () {
+        // print("Flutter");
+      },
+      textStyle: const TextStyle(
+        color: Colors.red,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    "write email": HighlightedWord(
+      onTap: () {
+        // print("Flutter");
+      },
+      textStyle: const TextStyle(
+        color: Colors.green,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
     "flutter": HighlightedWord(
       onTap: () {
         // print("Flutter");
@@ -70,9 +100,64 @@ class _SpeechScreenState extends State<SpeechScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Center(
           child: Text('Confidence: ${(confidence * 100).toStringAsFixed(1)} %'),
         ),
+        actions: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              if (_copyButtonClicked)
+                Positioned(
+                  top: 15,
+                  right: 40,
+                  child: Container(
+                    width: 50,
+                    height: 20,
+                    decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(20)),
+                    child: const Center(
+                        child: Text(
+                      'Copied',
+                      style: TextStyle(color: Colors.white),
+                    )),
+                  ),
+                ),
+              IconButton(
+                tooltip: 'copied',
+                onPressed: () async {
+                  await FlutterClipboard.copy(text);
+                  setState(() {
+                    _copyButtonClicked = true;
+                  });
+                  await Future.delayed(const Duration(seconds: 2));
+                  setState(() {
+                    _copyButtonClicked = false;
+                  });
+                },
+                icon: const Icon(Icons.content_copy),
+              ),
+            ],
+          )
+
+          // Builder(builder: (context) {
+          //   return IconButton(
+          //     tooltip: 'copied',
+          //     onPressed: () async {
+          //       ScaffoldMessenger.of(context)
+          //           .showSnackBar(const SnackBar(content: Text('Copied to Clipboard')));
+
+          //       await FlutterClipboard.copy(text);
+          //       setState(() {
+          //         _copyButtonClicked = true;
+          //       });
+          //     },
+          //     icon: const Icon(Icons.content_copy),
+          //   );
+          // }),
+        ],
       ),
       body: SingleChildScrollView(
         reverse: true,
@@ -149,6 +234,9 @@ class _SpeechScreenState extends State<SpeechScreen> {
       await speech.stop();
       setState(() {
         isListening = true;
+      });
+      await Future.delayed(const Duration(seconds: 1), () {
+        Utils.scanText(text);
       });
     }
   }
